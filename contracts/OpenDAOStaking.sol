@@ -34,6 +34,7 @@ contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridabl
      * @param _rewardsDuration the duration of rewards in seconds
      */
     constructor(IERC20 _sos, uint64 _periodStart, uint64 _rewardsDuration) {
+        require(_sos != address(0), "OpenDAOStaking: _sos cannot be the zero address");
         sos = _sos;
         setPeriod(_periodStart, _rewardsDuration);
     }
