@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -13,8 +13,6 @@ contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridabl
     using SafeERC20 for IERC20;
     using SafeCast for int256;
     using SafeCast for uint256;
-
-    uint256 private constant SOS_TOTAL_SUPPLY = 1e14 ether;
 
     struct Config {
         // Timestamp in seconds is small enough to fit into uint64
@@ -62,6 +60,7 @@ contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridabl
      * @param _rewardsDuration the duration of rewards in seconds
      */
     function setPeriod(uint64 _periodStart, uint64 _rewardsDuration) public onlyOwner {
+        require(_periodStart >= blockTime(), "OpenDAOStaking: _periodStart shouldn't be in the past");
         require(_rewardsDuration > 0, "OpenDAOStaking: Invalid rewards duration");
 
         Config memory cfg = config;
