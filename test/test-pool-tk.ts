@@ -38,16 +38,18 @@ describe('OpenDAOStaking - TK', () => {
 
   describe('Constructor & default settings', () => {
     it('Should set a rewards duration', async () => {
+      const startTime = timestampInSecond() + 3600;
+
       const OpenDAOStakingFactory = await ethers.getContractFactory('OpenDAOStaking');
       const MyERC20Factory = await ethers.getContractFactory('MyERC20');
 
       let sosToken = await MyERC20Factory.connect(owner).deploy('SOS');
-      await expect(OpenDAOStakingFactory.connect(owner).deploy(sosToken.address, 0, 0))
+      await expect(OpenDAOStakingFactory.connect(owner).deploy(sosToken.address, startTime, 0))
         .to.be.revertedWith("OpenDAOStaking: Invalid rewards duration");
     });
 
     it('Validate states', async () => {
-      const startTime = timestampInSecond();
+      const startTime = timestampInSecond() + 3600;
       const MyERC20Factory = await ethers.getContractFactory('MyERC20');
       const OpenDAOStakingFactory = await ethers.getContractFactory('OpenDAOStaking');
 
@@ -66,7 +68,7 @@ describe('OpenDAOStaking - TK', () => {
   });
 
   describe('addRewardSOS(uint128)', () => {
-    const startTime = timestampInSecond();
+    const startTime = timestampInSecond() + 3600;
     const duration = DAY * 7;
     const endTime = startTime + duration;
 
@@ -92,7 +94,7 @@ describe('OpenDAOStaking - TK', () => {
   });
 
   describe('enter(uint256)', () => {
-    const startTime = timestampInSecond();
+    const startTime = timestampInSecond() + 3600;
     const duration = DAY * 7;
     const endTime = startTime + duration;
     const rewardPerSecond = ETHER * 953n;
@@ -165,7 +167,7 @@ describe('OpenDAOStaking - TK', () => {
 
 
   describe('Integration tests', () => {
-    const startTime = timestampInSecond();
+    const startTime = timestampInSecond() + 3600;
     const duration = DAY * 7;
     const endTime = startTime + duration;
     const rewardPerSecond = ETHER * 953n;
