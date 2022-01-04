@@ -5,7 +5,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
-import { OpenDAOStaking, MyERC20 } from "../typechain";
+import { OpenDAOStakingDev, MyERC20 } from "../typechain";
 import { timestampInSecond } from "../utils/timestamp";
 import { MONTH, MINUTE, DAY, YEAR, HOUR } from "../utils/constants";
 // 0.000000001 Ether = 1Gwei
@@ -26,7 +26,7 @@ let charlie: SignerWithAddress;
 let david: SignerWithAddress;
 
 let SOS: MyERC20;
-let veSOS: OpenDAOStaking;
+let veSOS: OpenDAOStakingDev;
 
 async function init(start: number, duration: number) {
   expect(31337).eq((await provider.getNetwork()).chainId);
@@ -35,7 +35,7 @@ async function init(start: number, duration: number) {
   const MyERC20Factory = await ethers.getContractFactory("MyERC20");
   SOS = await MyERC20Factory.connect(owner).deploy("SOS");
 
-  const OpenDAOPoolFactory = await ethers.getContractFactory("OpenDAOStaking");
+  const OpenDAOPoolFactory = await ethers.getContractFactory("OpenDAOStakingDev");
   veSOS = await OpenDAOPoolFactory.connect(owner).deploy(SOS.address, start, duration);
 
   await veSOS.setblockTime(now);

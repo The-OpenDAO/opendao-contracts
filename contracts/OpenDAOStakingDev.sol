@@ -7,8 +7,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./BlockTimeOverridable.sol";
 
-contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridable {
+contract OpenDAOStakingDev is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridable {
     using SafeERC20 for IERC20;
     using SafeCast for int256;
     using SafeCast for uint256;

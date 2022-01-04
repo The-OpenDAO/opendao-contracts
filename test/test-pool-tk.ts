@@ -1,7 +1,7 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { OpenDAOStaking, MyERC20 } from '../typechain';
+import { OpenDAOStakingDev, MyERC20 } from '../typechain';
 import { timestampInSecond } from '../utils/timestamp';
 import { ETHER, UINT256_MAX, DAY } from '../utils/constants';
 
@@ -15,11 +15,11 @@ let charlie: SignerWithAddress;
 let david: SignerWithAddress;
 
 let sosToken: MyERC20;
-let stakingPool: OpenDAOStaking;
+let stakingPool: OpenDAOStakingDev;
 
 async function setupStakingPool(start: number, duration: number) {
   const MyERC20Factory = await ethers.getContractFactory('MyERC20');
-  const OpenDAOStakingFactory = await ethers.getContractFactory('OpenDAOStaking');
+  const OpenDAOStakingFactory = await ethers.getContractFactory('OpenDAOStakingDev');
 
   sosToken = await MyERC20Factory.deploy("MyERC20");
   stakingPool = await OpenDAOStakingFactory.deploy(sosToken.address, start, duration);
@@ -205,7 +205,7 @@ describe('OpenDAOStaking - TK', () => {
       // Inject 6 * rewardPerSecond into the pool
       await stakingPool.setblockTime(startTime + 7 + 8 + 4 + 6);
       await stakingPool.connect(charlie).leave(10869566949657254205n);
-      
+
       // Inject 1 * rewardPerSecond into the pool
       await stakingPool.setblockTime(startTime + 7 + 8 + 4 + 6 + 1);
       await stakingPool.connect(bob).leave(4028197381671701913n);
