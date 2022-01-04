@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridable {
+contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable {
     using SafeERC20 for IERC20;
     using SafeCast for int256;
     using SafeCast for uint256;
@@ -45,7 +45,7 @@ contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridabl
      */
     function addRewardSOS(uint256 _sosAmount) external {
         Config memory cfg = config;
-        require(blockTime() < cfg.periodFinish, "OpenDAOStaking: Adding rewards is forbidden");
+        require(block.timestamp < cfg.periodFinish, "OpenDAOStaking: Adding rewards is forbidden");
 
         sos.safeTransferFrom(msg.sender, address(this), _sosAmount);
         cfg.totalReward += _sosAmount.toUint128();
@@ -60,11 +60,11 @@ contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridabl
      * @param _rewardsDuration the duration of rewards in seconds
      */
     function setPeriod(uint64 _periodStart, uint64 _rewardsDuration) public onlyOwner {
-        require(_periodStart >= blockTime(), "OpenDAOStaking: _periodStart shouldn't be in the past");
+        require(_periodStart >= block.timestamp, "OpenDAOStaking: _periodStart shouldn't be in the past");
         require(_rewardsDuration > 0, "OpenDAOStaking: Invalid rewards duration");
 
         Config memory cfg = config;
-        require(cfg.periodFinish < blockTime(), "OpenDAOStaking: The last reward period should be finished before setting a new one");
+        require(cfg.periodFinish < block.timestamp, "OpenDAOStaking: The last reward period should be finished before setting a new one");
 
         uint64 _periodFinish = _periodStart + _rewardsDuration;
         config.periodStart = _periodStart;
@@ -89,7 +89,7 @@ contract OpenDAOStaking is ERC20("veSOS", "veSOS"), Ownable, BlockTimeOverridabl
     function frozenRewards() public view returns(uint256) {
         Config memory cfg = config;
 
-        uint256 time = blockTime();
+        uint256 time = block.timestamp;
         uint256 remainingTime;
         uint256 duration = uint256(cfg.periodFinish) - uint256(cfg.periodStart);
 
