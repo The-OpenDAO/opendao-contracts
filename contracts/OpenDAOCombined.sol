@@ -12,21 +12,35 @@ interface IERC20 {
     function decimals() external view returns (uint8);
 }
 
+interface IOpenDAOStaking is IERC20 {
+    function getSOSPool() external view returns(uint256);
+}
+
 contract OpenDAOCombined {
     IMasterChefV2UserInfo public constant _chefV2 = IMasterChefV2UserInfo(0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d);
     IERC20 public constant _sosWETHPair = IERC20(0xB84C45174Bfc6b8F3EaeCBae11deE63114f5c1b2);
     IERC20 public constant _sosToken = IERC20(0x3b484b82567a09e2588A13D54D032153f0c0aEe0);
+    IOpenDAOStaking public constant _vesosToken = IOpenDAOStaking(0xEDd27C961CE6f79afC16Fd287d934eE31a90D7D1);
 
     uint256 private constant SOS_WETH_POOL_ID = 45;
 
     function balanceOf(address account) external view returns (uint256) {
-        return getBalance(account, _chefV2, _sosToken, _sosWETHPair);
+        return getBalance(account, _chefV2, _sosToken, _sosWETHPair, _vesosToken);
     }
 
-    function getBalance(address account, IMasterChefV2UserInfo chefV2, IERC20 sosToken, IERC20 sosWETHPair) public view returns (uint256) {
+    function getBalance(address account, IMasterChefV2UserInfo chefV2, IERC20 sosToken, IERC20 sosWETHPair, IOpenDAOStaking vesosToken) public view returns (uint256) {
         uint256 sosBalance = sosToken.balanceOf(account);
 
-        // TODO: veSOS Balance
+        // veSOS Balance
+        uint256 _stakedSOS = 0;
+        {
+            uint256 totalSOS = vesosToken.getSOSPool();
+            uint256 totalShares = vesosToken.totalSupply();
+            uint256 _share = vesosToken.balanceOf(account);
+            if (totalShares != 0) {
+                _stakedSOS = _share * totalSOS / totalShares;
+            }
+        }
 
         // LP Provider
 
@@ -38,7 +52,7 @@ contract OpenDAOCombined {
 
         // Sum them up!
 
-        uint256 combinedSOSBalance = sosBalance + lpAdjustedBalance;
+        uint256 combinedSOSBalance = sosBalance + lpAdjustedBalance + _stakedSOS;
         return combinedSOSBalance;
     }
 
