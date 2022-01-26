@@ -93,19 +93,19 @@ describe("test-combined.ts", function () {
 
     expect(b(800n + 300n)).eq(await combined.getSupply(sos.address, sosWETHPair.address));
 
-    expect(await getBlance(alice)).eq(await combined.getBalance(alice.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
-    expect(await getBlance(bob)).eq(await combined.getBalance(bob.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
-    expect(await getBlance(charlie)).eq(await combined.getBalance(charlie.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
-    expect(await getBlance(david)).eq(await combined.getBalance(david.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
+    expect(await getBalance(alice)).eq(await combined.getBalance(alice.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
+    expect(await getBalance(bob)).eq(await combined.getBalance(bob.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
+    expect(await getBalance(charlie)).eq(await combined.getBalance(charlie.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
+    expect(await getBalance(david)).eq(await combined.getBalance(david.address, chef.address, sos.address, sosWETHPair.address, vesos.address));
   });
 });
 
-async function getBlance(account: SignerWithAddress) {
+async function getBalance(account: SignerWithAddress) {
   const totalSOS = await vesos.getSOSPool();
   const totalShares = await vesos.totalSupply();
   const _share = await vesos.balanceOf(account.address);
   const _stakedSOS = _share.mul(totalSOS).div(totalShares);
-  
+
   const lpBalance = (await chef.userInfo(45, account.address))[0].add(await sosWETHPair.balanceOf(account.address));
   const lpAdjustedBalance = lpBalance.mul((await sos.balanceOf(sosWETHPair.address)).div(await sosWETHPair.totalSupply())).mul(2)
   const sosBalance = await sos.balanceOf(account.address);

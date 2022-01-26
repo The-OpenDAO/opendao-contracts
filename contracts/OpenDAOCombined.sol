@@ -25,43 +25,62 @@ contract OpenDAOCombined {
     uint256 private constant SOS_WETH_POOL_ID = 45;
 
     function balanceOf(address account) external view returns (uint256) {
-        return getBalance(account, _chefV2, _sosToken, _sosWETHPair, _vesosToken);
-    }
+        uint256[] memory tokens = getNormalizedSOSs(account);
+        uint256 total = 0;
 
-    function getBalance(address account, IMasterChefV2UserInfo chefV2, IERC20 sosToken, IERC20 sosWETHPair, IOpenDAOStaking vesosToken) public view returns (uint256) {
-        uint256 sosBalance = sosToken.balanceOf(account);
-
-        // veSOS Balance
-        uint256 _stakedSOS = 0;
-        {
-            uint256 totalSOS = vesosToken.getSOSPool();
-            uint256 totalShares = vesosToken.totalSupply();
-            uint256 _share = vesosToken.balanceOf(account);
-            if (totalShares != 0) {
-                _stakedSOS = _share * totalSOS / totalShares;
-            }
+        for (uint8 i = 0; i < tokens.length; i++) {
+            total += tokens[i];
         }
 
-        // LP Provider
+        return total;
+    }
 
+    function getNormalizedVeSOS(address account, IOpenDAOStaking vesosToken) public view returns(uint256) {
+        uint256 stakedSOS = 0;
+
+        uint256 totalSOS = vesosToken.getSOSPool();
+        uint256 totalShares = vesosToken.totalSupply();
+        uint256 _share = vesosToken.balanceOf(account);
+        if (totalShares != 0) {
+            stakedSOS = _share * totalSOS / totalShares;
+        }
+
+        return stakedSOS;
+    }
+
+    function getNormalizedSLP(address account, IERC20 sosWETHPair, IMasterChefV2UserInfo chefV2, IERC20 sosToken) public view returns(uint256) {
         (uint256 lpStakedBalance, ) = chefV2.userInfo(SOS_WETH_POOL_ID, account);
         uint256 lpUnstaked = sosWETHPair.balanceOf(account);
         uint256 lpBalance = lpStakedBalance + lpUnstaked;
 
-        uint256 lpAdjustedBalance = lpBalance * sosToken.balanceOf(address(sosWETHPair)) / sosWETHPair.totalSupply() * 2;
+        return lpBalance * sosToken.balanceOf(address(sosWETHPair)) / sosWETHPair.totalSupply() * 2;
+    }
 
-        // Sum them up!
+    function getNormalizedSOSs(address account, IMasterChefV2UserInfo chefV2, IERC20 sosToken, IERC20 sosWETHPair, IOpenDAOStaking vesosToken) public view returns (uint256[] memory) {
+        uint256[] memory tokens = new uint256[](3);
 
-        uint256 combinedSOSBalance = sosBalance + lpAdjustedBalance + _stakedSOS;
-        return combinedSOSBalance;
+        tokens[0] = _sosToken.balanceOf(account);
+        tokens[1] = getNormalizedVeSOS(account, vesosToken);
+        tokens[2] = getNormalizedSLP(account, sosWETHPair, chefV2, sosToken);
+
+        return tokens;
+    }
+
+    function getNormalizedSOSs(address account) public view returns (uint256[] memory) {
+        return getNormalizedSOSs(
+            account,
+            _chefV2,
+            _sosToken,
+            _sosWETHPair,
+            _vesosToken);
     }
 
     function totalSupply() external view returns (uint256) {
-        return getSupply(_sosToken, _sosWETHPair);
+        return getSupply(_sosToken, _sosWETHPair, _vesosToken);
     }
 
-    function getSupply(IERC20 sosToken, IERC20 sosWETHPair) public view returns (uint256) {
-        return sosToken.totalSupply() + sosToken.balanceOf(address(sosWETHPair));
+    function getSupply(IERC20 sosToken, IERC20 sosWETHPair, IERC20 vesosToken) public view returns (uint256) {
+        return sosToken.totalSupply() + sosToken.balanceOf(address(sosWETHPair)) + sosToken.balanceOf(address(vesosToken));
     }
 
     function name() external pure returns (string memory) { return "cSOS"; }
