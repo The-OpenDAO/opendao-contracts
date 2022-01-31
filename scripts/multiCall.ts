@@ -2,9 +2,11 @@
 /* eslint-disable no-process-exit */
 /* eslint-disable prettier/prettier */
 import { BigNumber, ethers } from "ethers";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 /*
-npx hardhat --network mainnet run scripts/multiCall.ts
+ts-node scripts/multiCall.ts
 */
 async function main() {
     const provider = new ethers.providers.JsonRpcProvider(process.env.MAINNET_URL || "");
@@ -13,7 +15,8 @@ async function main() {
     const getPower = await initPowerGetter(provider);
     const block = await provider.getBlockNumber();
     const power = await getPower(user, block, 0.1);
-    console.log("block: %s %s", block, ethers.utils.formatEther(power.sosPower));
+    console.log("power %s block: %s %s", user, block, ethers.utils.formatEther(power.sosPower));
+    console.log("lp    %s block: %s %s", user, block, ethers.utils.formatEther(power.lpAdjustedBalance));
 }
 
 async function initPowerGetter(provider: ethers.providers.JsonRpcProvider) {
@@ -83,6 +86,7 @@ async function initPowerGetter(provider: ethers.providers.JsonRpcProvider) {
             veSosBalance: BigNumber,
             lpUnstaked: BigNumber,
             lpStakedBalance: BigNumber,
+            lpAdjustedBalance: BigNumber,
         };
         const result: Power = {
             blockNum: bn,
@@ -91,6 +95,7 @@ async function initPowerGetter(provider: ethers.providers.JsonRpcProvider) {
             sosPower: BigNumber.from(0),
             veSosBalance: BigNumber.from(0),
             lpUnstaked: BigNumber.from(0),
+            lpAdjustedBalance: BigNumber.from(0),
         };
 
         // uint256 sosBalance = sosToken.balanceOf(account);
@@ -125,6 +130,7 @@ async function initPowerGetter(provider: ethers.providers.JsonRpcProvider) {
         // uint256 combinedSOSBalance = sosBalance + lpAdjustedBalance + _stakedSOS;
         const combinedSOSBalance = sosBalance.add(lpAdjustedBalance).add(_stakedSOS);
         result.sosPower = combinedSOSBalance;
+        result.lpAdjustedBalance = lpAdjustedBalance;
         return result;
     }
     return getPower;
