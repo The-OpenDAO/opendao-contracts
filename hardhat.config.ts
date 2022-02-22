@@ -1,11 +1,12 @@
+/* eslint-disable node/no-missing-import */
 import * as dotenv from "dotenv";
-
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+import { getKeys } from "./utils/network";
 
 dotenv.config();
 
@@ -41,22 +42,16 @@ const config: HardhatUserConfig = {
     hardhat: {
       initialBaseFeePerGas: 0, // workaround from https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136 . Remove when that issue is closed.
     },
-    ropsten: {
-      url: process.env.ROPSTEN_URL || "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
     rinkeby: {
       url: process.env.RINKEBY_URL || "",
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.RINKEBY_PRIVATE !== undefined
+          ? process.env.RINKEBY_PRIVATE.split(",")
+          : [],
     },
     mainnet: {
       url: process.env.MAINNET_URL || "",
-      accounts:
-        process.env.MAINNET_PRIVATE_KEY !== undefined
-          ? [process.env.MAINNET_PRIVATE_KEY]
-          : [],
+      accounts: getKeys(process.env.MAINNET_KEY_PATH || ""),
     },
   },
   gasReporter: {
