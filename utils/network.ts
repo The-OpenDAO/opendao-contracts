@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const rinkeby: string = "rinkeby";
+const goerli: string = "goerli";
 const mainnet: string = "mainnet";
 
 export function getENV(hre: HardhatRuntimeEnvironment, varName: string): string {
@@ -15,6 +16,9 @@ export function getENV(hre: HardhatRuntimeEnvironment, varName: string): string 
   switch (hre.network.name) {
     case rinkeby:
       ret = process.env[(rinkeby + "_" + varName).toUpperCase()] || "";
+      break;
+    case goerli:
+      ret = process.env[(goerli + "_" + varName).toUpperCase()] || "";
       break;
     case mainnet:
       ret = process.env[(mainnet + "_" + varName).toUpperCase()] || "";

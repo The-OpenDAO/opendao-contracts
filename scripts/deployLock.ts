@@ -7,6 +7,8 @@ import { getENV, getNonce } from "../utils/network";
 /*
 npx hardhat --network rinkeby run scripts/deployLock.ts
 
+npx hardhat --network goerli run scripts/deployLock.ts
+
 npx hardhat --network mainnet run scripts/deployLock.ts
 */
 async function main(): Promise<void> {

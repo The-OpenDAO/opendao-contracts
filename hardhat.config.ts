@@ -49,6 +49,13 @@ const config: HardhatUserConfig = {
           ? process.env.RINKEBY_PRIVATE.split(",")
           : [],
     },
+    goerli: {
+      url: process.env.GOERLI_URL || "",
+      accounts:
+        process.env.GOERLI_PRIVATE !== undefined
+          ? process.env.GOERLI_PRIVATE.split(",")
+          : [],
+    },
     mainnet: {
       url: process.env.MAINNET_URL || "",
       accounts: getKeys(process.env.MAINNET_KEY_PATH || ""),
