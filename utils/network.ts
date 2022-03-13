@@ -7,9 +7,11 @@ import "@typechain/hardhat";
 import { readFileSync, writeFileSync } from "fs";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-const rinkeby: string = "rinkeby";
-const goerli: string = "goerli";
-const mainnet: string = "mainnet";
+const rinkeby = "rinkeby";
+const goerli = "goerli";
+const mainnet = "mainnet";
+const mumbai = "mumbai";
+const polygon = "polygon";
 
 export function getENV(hre: HardhatRuntimeEnvironment, varName: string): string {
   let ret;
@@ -22,6 +24,12 @@ export function getENV(hre: HardhatRuntimeEnvironment, varName: string): string 
       break;
     case mainnet:
       ret = process.env[(mainnet + "_" + varName).toUpperCase()] || "";
+      break;
+    case mumbai:
+      ret = process.env[(mumbai + "_" + varName).toUpperCase()] || "";
+      break;
+    case polygon:
+      ret = process.env[(polygon + "_" + varName).toUpperCase()] || "";
       break;
     default:
       console.log("unknown network name, exiting...");
