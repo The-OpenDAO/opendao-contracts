@@ -12,6 +12,8 @@ contract OpenDAOWLSeller is Ownable {
     error SOSIncorrect(uint256 expect, uint256 actual);
     error NotAllowContract(address txOrigin, address sender);
     error ExeceedMaxPerWallet(uint256 max, uint256 owned);
+    error ExeceedMaxSupply(uint256 supply, uint256 bought);
+    error SaleNotEnabled();
 
     IERC20 public immutable sosToken;
     address public immutable treasury;
@@ -19,6 +21,7 @@ contract OpenDAOWLSeller is Ownable {
 
     struct Project {
         uint16 totalSupply;
+        uint16 totalBought;
         uint16 wlListLen;
         uint8 maxPerWallet;
         bool allowContract;
@@ -32,12 +35,14 @@ contract OpenDAOWLSeller is Ownable {
 
     mapping(uint256 => Project) public projects;
 
-    constructor(IERC20 _sosToken) {
+    constructor(IERC20 _sosToken, address _treasury) {
         sosToken = _sosToken;
+        treasury = _treasury;
     }
 
     function addProject(uint16 totalSupply, uint40 price) external onlyOwner {
         projects[nextProjectID].totalSupply = totalSupply;
+        projects[nextProjectID].totalBought = 0;
         projects[nextProjectID].wlListLen = 0;
         projects[nextProjectID].maxPerWallet = 1;
         projects[nextProjectID].allowContract = false;
@@ -79,7 +84,7 @@ contract OpenDAOWLSeller is Ownable {
         if(end > projects[projecdtID].wlListLen) {
             end = projects[projecdtID].wlListLen;
         }
-        for(uint i=start; i<end && i<; i++) {
+        for(uint i=start; i<end; i++) {
             wlList[i] = projects[projecdtID].WLAddressList[i];
         }
         return wlList;
@@ -88,6 +93,7 @@ contract OpenDAOWLSeller is Ownable {
     function buyWL(uint256 projecdtID, uint16 count) external {
         Project memory p = projects[projecdtID];
 
+        require(isSaleEnabled, SaleNotEnabled());
         if(!p.allowContract && tx.origin != msg.sender) {
             revert NotAllowContract(tx.origin, msg.sender);
         }
@@ -96,15 +102,19 @@ contract OpenDAOWLSeller is Ownable {
         uint256 amount = price * count;
         sosToken.safeTransferFrom(msg.sender, address(0), amount * 90 / 100);
         sosToken.safeTransferFrom(msg.sender, treasury, amount - amount * 90 / 100);
-        projects[projecdtID].totalSupply -= count;
 
-        if(p.useWLAddressList)
-             projects[projecdtID].WLAddressList.push(msg.sender);
+        if(p.useWLAddressList) {
+            p.WLAddressList.push(msg.sender);
+            p.wlListLen++;
+        }
 
         if(p.maxPerWallet!=0) {
             require(p.ownedWL[msg.sender] + count <= p.maxPerWallet, ExeceedMaxPerWallet(p.maxPerWallet, p.ownedWL[msg.sender]));
         }
+        require(p.totalBought + count <= p.totalSupply, ExeceedMaxSupply(p.totalSupply, p.totalBought));
+
         p.ownedWL[msg.sender] += count;
+        p.totalBought += count;
 
         emit BuyWL(msg.sender, count, projectID);
     }
