@@ -103,8 +103,8 @@ contract OpenDAOWLSeller is Ownable {
         uint256 price = uint256(p.price) * 1 ether;
         uint256 amount = price * uint256(count);
 
-        sosToken.safeTransferFrom(msg.sender, address(1), amount * 90 / 100);
-        sosToken.safeTransferFrom(msg.sender, treasury, amount);
+        sosToken.safeTransferFrom(msg.sender, address(this), amount * 90 / 100);
+        sosToken.safeTransferFrom(msg.sender, treasury, amount - amount * 90 / 100);
 
         if(p.useWLAddressList) {
             p.WLAddressList.push(msg.sender);
