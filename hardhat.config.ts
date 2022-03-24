@@ -63,7 +63,7 @@ const config: HardhatUserConfig = {
     },
     mainnet: {
       url: process.env.MAINNET_URL || "",
-      accounts: getKeys(process.env.MAINNET_KEY_PATH || ""),
+      accounts: [],
     },
     mumbai: {
       url: process.env.MUMBAI_URL || "",
@@ -74,7 +74,7 @@ const config: HardhatUserConfig = {
     },
     polygon: {
       url: process.env.POLYGON_URL || "",
-      accounts: getKeys(process.env.POLYGON_KEY_PATH || ""),
+      accounts: [],
     },
   },
   gasReporter: {

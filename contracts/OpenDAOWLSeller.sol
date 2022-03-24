@@ -15,6 +15,8 @@ contract OpenDAOWLSeller is Ownable {
     error ExeceedMaxSupply(uint256 supply, uint256 bought);
     error SaleNotEnabled();
 
+    event BuyWL(address indexed buyer, uint count, uint projectID);
+
     IERC20 public immutable sosToken;
     address public immutable treasury;
     uint256 nextProjectID = 0;
@@ -29,7 +31,7 @@ contract OpenDAOWLSeller is Ownable {
         uint40 price;
         address[] WLAddressList;
         mapping (address => uint256) ownedWL;
-        uint32 startBlock;
+        uint256 startBlock;
         bool isSaleEnabled;
     }
 
@@ -53,55 +55,56 @@ contract OpenDAOWLSeller is Ownable {
         ++nextProjectID;
     }
 
-    function setTotalSupply(uint256 projecdtID, uint256 totalSupply) external onlyOwner {
-        projects[projecdtID].totalSupply = totalSupply;
+    function setTotalSupply(uint256 projectID, uint16 totalSupply) external onlyOwner {
+        projects[projectID].totalSupply = totalSupply;
     }
 
-    function setMaxPerWallet(uint256 projecdtID, uint256 maxPerWallet) external onlyOwner {
-        projects[projecdtID].maxPerWallet = maxPerWallet;
+    function setMaxPerWallet(uint256 projectID, uint8 maxPerWallet) external onlyOwner {
+        projects[projectID].maxPerWallet = maxPerWallet;
     }
 
-    function setPrice(uint256 projecdtID, uint256 price) external onlyOwner {
-        projects[projecdtID].price = price;
+    function setPrice(uint256 projectID, uint40 price) external onlyOwner {
+        projects[projectID].price = price;
     }
 
-    function toggleAllowContract(uint256 projecdtID) external onlyOwner {
-        projects[projecdtID].allowContract = !projects[projecdtID].allowContract;
+    function toggleAllowContract(uint256 projectID) external onlyOwner {
+        projects[projectID].allowContract = !projects[projectID].allowContract;
     }
 
-    function toggleEnable(uint256 projecdtID) external onlyOwner {
-        projects[projecdtID].isSaleEnabled = !projects[projecdtID].isSaleEnabled;
+    function toggleEnable(uint256 projectID) external onlyOwner {
+        projects[projectID].isSaleEnabled = !projects[projectID].isSaleEnabled;
     }
 
-    function toggleUseWLAddressList(uint256 projecdtID) external onlyOwner {
-        projects[projecdtID].useWLAddressList = !projects[projecdtID].useWLAddressList;
+    function toggleUseWLAddressList(uint256 projectID) external onlyOwner {
+        projects[projectID].useWLAddressList = !projects[projectID].useWLAddressList;
     }
 
-    function getByPage(uint256 projecdtID, uint256 page, uint256 size) external view returns(address[] memory a) {
+    function getByPage(uint256 projectID, uint256 page, uint256 size) external view returns(address[] memory a) {
         address[] memory wlList;
         uint start = page * size;
         uint end = page * size + size;
-        if(end > projects[projecdtID].wlListLen) {
-            end = projects[projecdtID].wlListLen;
+        if(end > projects[projectID].wlListLen) {
+            end = projects[projectID].wlListLen;
         }
         for(uint i=start; i<end; i++) {
-            wlList[i] = projects[projecdtID].WLAddressList[i];
+            wlList[i] = projects[projectID].WLAddressList[i];
         }
         return wlList;
     }
 
-    function buyWL(uint256 projecdtID, uint16 count) external {
-        Project memory p = projects[projecdtID];
+    function buyWL(uint256 projectID, uint16 count) external {
+        Project storage p = projects[projectID];
 
-        require(isSaleEnabled, SaleNotEnabled());
+        require(p.isSaleEnabled, "SaleNotEnabled");
         if(!p.allowContract && tx.origin != msg.sender) {
             revert NotAllowContract(tx.origin, msg.sender);
         }
 
-        uint256 price = p.price * 1 ether;
-        uint256 amount = price * count;
-        sosToken.safeTransferFrom(msg.sender, address(0), amount * 90 / 100);
-        sosToken.safeTransferFrom(msg.sender, treasury, amount - amount * 90 / 100);
+        uint256 price = uint256(p.price) * 1 ether;
+        uint256 amount = price * uint256(count);
+
+        sosToken.safeTransferFrom(msg.sender, address(1), amount * 90 / 100);
+        sosToken.safeTransferFrom(msg.sender, treasury, amount);
 
         if(p.useWLAddressList) {
             p.WLAddressList.push(msg.sender);
@@ -109,9 +112,11 @@ contract OpenDAOWLSeller is Ownable {
         }
 
         if(p.maxPerWallet!=0) {
-            require(p.ownedWL[msg.sender] + count <= p.maxPerWallet, ExeceedMaxPerWallet(p.maxPerWallet, p.ownedWL[msg.sender]));
+            require(p.ownedWL[msg.sender] + count <= p.maxPerWallet, "ExeceedMaxPerWallet");
         }
-        require(p.totalBought + count <= p.totalSupply, ExeceedMaxSupply(p.totalSupply, p.totalBought));
+        if(p.totalBought + count > p.totalSupply) {
+            revert ExeceedMaxSupply(p.totalSupply, p.totalBought);
+        }
 
         p.ownedWL[msg.sender] += count;
         p.totalBought += count;
