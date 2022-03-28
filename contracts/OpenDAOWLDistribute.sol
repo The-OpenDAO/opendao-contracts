@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract OpenDAOWLSeller is Ownable {
+contract OpenDAOWLDistribute is Ownable {
     using SafeERC20 for IERC20;
 
-    event BuyWL(address indexed buyer, uint count, uint projectID);
+    event RequestWL(address indexed requester, uint count, uint projectID);
 
     IERC20 public immutable sosToken;
     address public immutable treasury;
@@ -22,7 +22,7 @@ contract OpenDAOWLSeller is Ownable {
         bool allowContract;
         uint40 price;
         uint32 startBlock;
-        bool isSaleEnabled;
+        bool isEnabled;
     }
 
     mapping(uint256 => Project) public projects; //map from project id to project object
@@ -44,7 +44,7 @@ contract OpenDAOWLSeller is Ownable {
         projects[nextProjectID].allowContract = false;
         projects[nextProjectID].price = price;
         projects[nextProjectID].startBlock = uint32(block.number);
-        projects[nextProjectID].isSaleEnabled = false;
+        projects[nextProjectID].isEnabled = false;
         projectNames[nextProjectID] = projectName;
         projectIds[projectName] = nextProjectID;
         ++nextProjectID;
@@ -57,18 +57,18 @@ contract OpenDAOWLSeller is Ownable {
 
     function toggleEnable(uint256 projectID) external onlyOwner {
         require(projects[projectID].totalSupply > 0, "InvalidProject");
-        projects[projectID].isSaleEnabled = !projects[projectID].isSaleEnabled;
+        projects[projectID].isEnabled = !projects[projectID].isEnabled;
     }
 
     function getProjectID(string memory projectName) external view returns(uint256 pid) {
         return projectIds[projectName];
     }
 
-    function buyWL(uint256 projectID, uint8 count) external {
+    function requestWL(uint256 projectID, uint8 count) external {
         require(projects[projectID].totalSupply > 0, "InvalidProject");
         Project storage p = projects[projectID];
 
-        require(p.isSaleEnabled, "SaleNotEnabled");
+        require(p.isEnabled, "NotEnabled");
         if (!p.allowContract) {
             require(tx.origin == msg.sender, "NotAllowContract");
         }
@@ -87,7 +87,7 @@ contract OpenDAOWLSeller is Ownable {
         ownedWLs[projectID][msg.sender] += count;
         p.totalBought += count;
 
-        emit BuyWL(msg.sender, count, projectID);
+        emit RequestWL(msg.sender, count, projectID);
     }
 
 }
