@@ -26,12 +26,10 @@ describe("OpenDAOWLDistribute", function () {
 
   it("happy path", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject(1000, 5000, 1, "testProjectName1");
-    await distribute.addProject(1000, 5000, 1, "testProjectName2");
-    let pid1 = await distribute.getProjectID("testProjectName1");
-    let pid2 = await distribute.getProjectID("testProjectName2");
-    await distribute.toggleEnable(pid1);
-    await distribute.toggleEnable(pid2);
+    await distribute.addProject("testProjectName1", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName2", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    let pid1 = 1;
+    let pid2 = 2;
 
     await sos.connect(alice).approve(distribute.address, 30000n * 1000000000000000000n);
     await sos.connect(alice).mint(30000n*1000000000000000000n);
@@ -41,15 +39,15 @@ describe("OpenDAOWLDistribute", function () {
     expect(await sos.balanceOf(alice.address)).eq(30000n * 1000000000000000000n);
     expect(await sos.balanceOf(bob.address)).eq(50000n * 1000000000000000000n);
 
-    await expect(distribute.connect(alice).requestWL(pid1, 1))
+    await expect(distribute.connect(alice).requestWL(pid1))
         .to.emit(distribute, 'RequestWL')
-        .withArgs(alice.address, 1, pid1);
-    await expect(distribute.connect(bob).requestWL(pid1, 1))
+        .withArgs(alice.address, pid1, 4500n * 1000000000000000000n, 500n * 1000000000000000000n);
+    await expect(distribute.connect(bob).requestWL(pid1))
         .to.emit(distribute, 'RequestWL')
-        .withArgs(bob.address, 1, pid1);
-    await expect(distribute.connect(bob).requestWL(pid2, 1))
+        .withArgs(bob.address, pid1, 4500n * 1000000000000000000n, 500n * 1000000000000000000n);
+    await expect(distribute.connect(bob).requestWL(pid2))
         .to.emit(distribute, 'RequestWL')
-        .withArgs(bob.address, 1, pid2);
+        .withArgs(bob.address, pid2, 4500n * 1000000000000000000n, 500n * 1000000000000000000n);
 
     const project = await distribute.projects(pid1);
     expect(project.totalSupply).eq(1000);
@@ -61,29 +59,22 @@ describe("OpenDAOWLDistribute", function () {
 
   it("project not enabled", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject(1000, 5000, 1, "testProjectName");
-    await expect(distribute.connect(alice).requestWL(1, 2)).to.be.revertedWith("NotEnabled");
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: false});
+    await expect(distribute.connect(alice).requestWL(1)).to.be.revertedWith("NotEnabled");
   });
 
   it("exceed max per wallet", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject(1000, 5000, 1, "testProjectName");
-    await distribute.toggleEnable(1);
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
     await sos.connect(alice).approve(distribute.address, 10000n*1000000000000000000n);
     await sos.connect(alice).mint(10000n*1000000000000000000n);
-    await distribute.connect(alice).requestWL(1, 1);
-    await expect(distribute.connect(alice).requestWL(1, 1)).to.be.revertedWith("ExeceedMaxPerWallet");
+    await distribute.connect(alice).requestWL(1);
+    await expect(distribute.connect(alice).requestWL(1)).to.be.revertedWith("AlreadyWhitelisted");
   });
 
   it("invalid project", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject(1000, 5000, 1, "testProjectName");
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 2649227867, endTime: 2649227867, isEnabled: true});
     await expect(distribute.toggleEnable(0)).to.be.revertedWith("InvalidProject");
-  });
-
-  it("duplicate project name", async function test() {
-    const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject(1000, 5000, 1, "testProjectName");
-    await expect(distribute.addProject(1000, 5000, 1, "testProjectName")).to.be.revertedWith("DuplicateProjectName");
   });
 });

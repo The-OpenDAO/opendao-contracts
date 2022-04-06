@@ -34,8 +34,8 @@ contract OpenDAOWLDistribute is Ownable {
     }
 
     function addProject(string calldata projectName, Project memory _project) external onlyOwner {
-        require(_project.totalSupply > 0, "");
-        require(_project.endTime >= block.timestamp, "");
+        require(_project.totalSupply > 0, "InvalidTotalSupply");
+        require(_project.endTime >= block.timestamp, "InvalidEndtime");
         
         _project.totalBought = 0;
         projects[nextProjectID] = _project;
@@ -45,9 +45,13 @@ contract OpenDAOWLDistribute is Ownable {
     }
 
     function setProject(Project calldata _project, uint256 projectID) external onlyOwner {
-        require(_project.totalSupply > 0, "");
-        require(_project.endTime >= block.timestamp, "");
+        require(projects[projectID].totalSupply > 0, "InvalidProject");
+        require(_project.totalSupply > 0, "InvalidTotalSupply");
+        require(_project.endTime >= block.timestamp, "InvalidEndtime");
+
         Project storage p = projects[projectID];
+        p.totalSupply = _project.totalSupply;
+        p.price = _project.price;
         p.endTime = _project.endTime;
         p.isEnabled = _project.isEnabled;
     }
@@ -63,9 +67,9 @@ contract OpenDAOWLDistribute is Ownable {
 
         require(p.isEnabled, "NotEnabled");
         require(tx.origin == msg.sender, "NotAllowContract");
-        require(p.endTime >= block.timestamp, "");
-        require(p.startTime <= block.timestamp, "");
-        require(ownedWLs[projectID][msg.sender] == 0, "");
+        require(p.endTime >= block.timestamp, "ProjectHasEnded");
+        require(p.startTime <= block.timestamp, "ProjectNotStarted");
+        require(ownedWLs[projectID][msg.sender] == 0, "AlreadyWhitelisted");
 
         uint256 price = uint256(p.price) * 1 ether;
 
