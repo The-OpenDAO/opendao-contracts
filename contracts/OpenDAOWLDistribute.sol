@@ -28,25 +28,18 @@ contract OpenDAOWLDistribute is Ownable {
     mapping(uint256 => Project) public projects; //map from project id to project object
     mapping(uint256 => mapping (address => uint256)) public ownedWLs; //how many whitelist each address bought
 
-    // mapping(string => uint256) public projectIds; //lookup project id by project name
-    // mapping(uint256 => string) public projectNames; //lookup project name by project id
-
     constructor(IERC20 _sosToken, address _treasury) {
         sosToken = _sosToken;
         treasury = _treasury;
     }
 
     function addProject(string calldata projectName, Project memory _project) external onlyOwner {
-        // require(projectIds[projectName] == 0, "DuplicateProjectName");
-
         require(_project.totalSupply > 0, "");
         require(_project.endTime >= block.timestamp, "");
         
         _project.totalBought = 0;
         projects[nextProjectID] = _project;
 
-        // projectNames[nextProjectID] = projectName;
-        // projectIds[projectName] = nextProjectID;
         emit ProjectAdded(nextProjectID, projectName);
         ++nextProjectID;
     }
@@ -56,7 +49,6 @@ contract OpenDAOWLDistribute is Ownable {
         require(_project.endTime >= block.timestamp, "");
         Project storage p = projects[projectID];
         p.endTime = _project.endTime;
-        //....
         p.isEnabled = _project.isEnabled;
     }
 
@@ -64,10 +56,6 @@ contract OpenDAOWLDistribute is Ownable {
         require(projects[projectID].totalSupply > 0, "InvalidProject");
         projects[projectID].isEnabled = !projects[projectID].isEnabled;
     }
-
-    // function getProjectID(string memory projectName) external view returns(uint256 pid) {
-    //     return projectIds[projectName];
-    // }
 
     function requestWL(uint256 projectID) external {
         require(projects[projectID].totalSupply > 0, "InvalidProject");
