@@ -20,6 +20,7 @@ contract OpenDAOWLDistribute is Ownable {
         uint40 price;
         uint16 totalSupply;
         uint16 totalBought;
+        uint32 startBlock;
         uint48 startTime;
         bool isEnabled;
         uint48 endTime;
@@ -38,6 +39,7 @@ contract OpenDAOWLDistribute is Ownable {
         require(_project.endTime >= block.timestamp, "InvalidEndtime");
         
         _project.totalBought = 0;
+        _project.startBlock = uint32(block.number);
         projects[nextProjectID] = _project;
 
         emit ProjectAdded(nextProjectID, projectName);

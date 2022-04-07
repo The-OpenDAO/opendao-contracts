@@ -26,8 +26,8 @@ describe("OpenDAOWLDistribute", function () {
 
   it("happy path", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName1", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
-    await distribute.addProject("testProjectName2", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName1", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName2", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
     let pid1 = 1;
     let pid2 = 2;
 
@@ -59,13 +59,13 @@ describe("OpenDAOWLDistribute", function () {
 
   it("project not enabled", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: false});
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: false});
     await expect(distribute.connect(alice).requestWL(1)).to.be.revertedWith("NotEnabled");
   });
 
   it("exceed max per wallet", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
     await sos.connect(alice).approve(distribute.address, 10000n*1000000000000000000n);
     await sos.connect(alice).mint(10000n*1000000000000000000n);
     await distribute.connect(alice).requestWL(1);
@@ -74,7 +74,7 @@ describe("OpenDAOWLDistribute", function () {
 
   it("invalid project", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 2649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 2649227867, endTime: 2649227867, isEnabled: true});
     await expect(distribute.toggleEnable(0)).to.be.revertedWith("InvalidProject");
   });
 });
