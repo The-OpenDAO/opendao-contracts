@@ -19,7 +19,7 @@ contract OpenDAOWLDistribute is Ownable {
     struct Project {
         uint40 price;
         uint16 totalSupply;
-        uint16 totalBought;
+        uint16 totalOwned;
         uint32 startBlock;
         uint48 startTime;
         bool isEnabled;
@@ -38,7 +38,7 @@ contract OpenDAOWLDistribute is Ownable {
         require(_project.totalSupply > 0, "InvalidTotalSupply");
         require(_project.endTime >= block.timestamp, "InvalidEndtime");
         
-        _project.totalBought = 0;
+        _project.totalOwned = 0;
         _project.startBlock = uint32(block.number);
         projects[nextProjectID] = _project;
 
@@ -79,10 +79,10 @@ contract OpenDAOWLDistribute is Ownable {
         sosToken.safeTransferFrom(msg.sender, address(1), burned);
         sosToken.safeTransferFrom(msg.sender, treasury, price - burned);
 
-        require(p.totalBought + 1 <= p.totalSupply, "ExeceedMaxSupply");
+        require(p.totalOwned + 1 <= p.totalSupply, "ExeceedMaxSupply");
 
         ownedWLs[projectID][msg.sender] = 1;
-        p.totalBought += 1;
+        p.totalOwned += 1;
 
         projects[projectID] = p;
         emit RequestWL(msg.sender, projectID, burned, price - burned);

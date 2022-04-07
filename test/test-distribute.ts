@@ -26,8 +26,8 @@ describe("OpenDAOWLDistribute", function () {
 
   it("happy path", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName1", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
-    await distribute.addProject("testProjectName2", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName1", {totalSupply: 1000, price: 5000, totalOwned: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName2", {totalSupply: 1000, price: 5000, totalOwned: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
     let pid1 = 1;
     let pid2 = 2;
 
@@ -51,7 +51,7 @@ describe("OpenDAOWLDistribute", function () {
 
     const project = await distribute.projects(pid1);
     expect(project.totalSupply).eq(1000);
-    expect(project.totalBought).eq(2);
+    expect(project.totalOwned).eq(2);
     expect(await sos.balanceOf(alice.address)).eq(25000n * 1000000000000000000n);
     expect(await sos.balanceOf(bob.address)).eq(40000n * 1000000000000000000n);
     expect(await sos.balanceOf(charlie.address)).eq(1500n * 1000000000000000000n); //10% goto treasure wallet
@@ -59,13 +59,13 @@ describe("OpenDAOWLDistribute", function () {
 
   it("project not enabled", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: false});
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalOwned: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: false});
     await expect(distribute.connect(alice).requestWL(1)).to.be.revertedWith("NotEnabled");
   });
 
   it("exceed max per wallet", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalOwned: 0, startBlock:0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
     await sos.connect(alice).approve(distribute.address, 10000n*1000000000000000000n);
     await sos.connect(alice).mint(10000n*1000000000000000000n);
     await distribute.connect(alice).requestWL(1);
@@ -74,7 +74,7 @@ describe("OpenDAOWLDistribute", function () {
 
   it("invalid project", async function test() {
     const distribute = await setupContract(sos.address, charlie.address);
-    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalBought: 0, startBlock:0, startTime: 2649227867, endTime: 2649227867, isEnabled: true});
+    await distribute.addProject("testProjectName", {totalSupply: 1000, price: 5000, totalOwned: 0, startBlock:0, startTime: 2649227867, endTime: 2649227867, isEnabled: true});
     await expect(distribute.toggleEnable(0)).to.be.revertedWith("InvalidProject");
   });
 });

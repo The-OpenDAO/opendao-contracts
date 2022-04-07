@@ -13,7 +13,7 @@ async function main() {
   const prjdata = {
     totalSupply: 1000, 
     price: 5000, 
-    totalBought: 0, 
+    totalOwned: 0, 
     startBlock: 0, 
     startTime: 1649227867, 
     endTime: 2649227867, 

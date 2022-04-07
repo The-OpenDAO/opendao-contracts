@@ -11,7 +11,7 @@ async function main() {
   const pjs = await distribute.projects(3);
   console.log("logging project #3 metadata:");
   console.log(pjs);
-  console.log("totalBought=" + pjs.totalBought);
+  console.log("totalOwned=" + pjs.totalOwned);
   console.log("totalSupply=" + pjs.totalSupply);
   console.log("startTime=" + pjs.startTime);
   console.log("logging project #3 done");
@@ -20,7 +20,7 @@ async function main() {
   //Wait for the function executaed
   let ppid = 0;
   console.log("Adding new project:");
-  const tx = await distribute.addProject("TestXYZ", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+  const tx = await distribute.addProject("TestXYZ", {totalSupply: 1000, price: 5000, totalOwned: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
   const receipt = await tx.wait();
   if(receipt && receipt.events && receipt.events.length > 0) {
     const data = receipt.events[0];
@@ -42,7 +42,7 @@ async function main() {
   let filter = distribute.filters.RequestWL(null, null, null, null);
   const ProjectID = 3;
   let eventsWith = await distribute.queryFilter(filter, -10000, "latest");
-  console.log("Project #" + ProjectID + " whitelist addresses: (total " + pjs.totalBought + ")");
+  console.log("Project #" + ProjectID + " whitelist addresses: (total " + pjs.totalOwned + ")");
   for (let i=0; i<eventsWith.length; i++) {
     let pid = eventsWith[i].args.projectID.toNumber();
     if(pid == ProjectID) {

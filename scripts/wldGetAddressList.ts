@@ -13,7 +13,7 @@ async function main() {
   const pjs = await distribute.projects(ProjectID);
   console.log(pjs);
 
-  console.log("Project #" + ProjectID + " whitelist addresses: (total " + pjs.totalBought + ")");
+  console.log("Project #" + ProjectID + " whitelist addresses: (total " + pjs.totalOwned + ")");
   let filter = distribute.filters.RequestWL(null, null, null, null);
   let eventsWith = await distribute.queryFilter(filter, pjs.startBlock, "latest");
   for (let i=0; i<eventsWith.length; i++) {
