@@ -6,17 +6,50 @@ async function main() {
   const [owner] = await ethers.getSigners();
   const distributeFactory = await ethers.getContractFactory("OpenDAOWLDistribute");
   const distribute = await distributeFactory.attach(getENV(hre, "distribute"));
-  //await distribute.addProject("TestXYZ", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
-  //await distribute.connect(owner).requestWL(1);
+  
+  //Read global variables
+  const pjs = await distribute.projects(3);
+  console.log("logging project #3 metadata:");
+  console.log(pjs);
+  console.log("totalBought=" + pjs.totalBought);
+  console.log("totalSupply=" + pjs.totalSupply);
+  console.log("startTime=" + pjs.startTime);
+  console.log("logging project #3 done");
+  console.log("==============================");
 
+  //Wait for the function executaed
+  let ppid = 0;
+  console.log("Adding new project:");
+  const tx = await distribute.addProject("TestXYZ", {totalSupply: 1000, price: 5000, totalBought: 0, startTime: 1649227867, endTime: 2649227867, isEnabled: true});
+  const receipt = await tx.wait();
+  if(receipt && receipt.events && receipt.events.length > 0) {
+    const data = receipt.events[0];
+    if(data && data.args) {
+      ppid = data.args.projectID;
+    }
+  }
+  if (ppid > 0) {
+    console.log("New project ID:" + ppid);
+  } else {
+    console.log("Adding new project failed");
+  }
+  console.log("==============================");
+
+  //Apply a whitelist for the project #3
+  //await distribute.connect(owner).requestWL(3);
+
+  //Scan all the old event emitted from the contract, filter inside the loop
   let filter = distribute.filters.RequestWL(null, null, null, null);
-  console.log(filter);
-
+  const ProjectID = 3;
   let eventsWith = await distribute.queryFilter(filter, -10000, "latest");
-  console.log(eventsWith);
-  //console.log(eventsWith[0].args.requester);
-  //console.log(eventsWith[0].args.projectID);
-
+  console.log("Project #" + ProjectID + " whitelist addresses: (total " + pjs.totalBought + ")");
+  for (let i=0; i<eventsWith.length; i++) {
+    let pid = eventsWith[i].args.projectID.toNumber();
+    if(pid == ProjectID) {
+      console.log(eventsWith[0].args.requester);
+    }
+  }
+  console.log("==============================");
 }
 
 main().catch((error) => {
